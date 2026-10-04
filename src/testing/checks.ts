@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { expect } from 'vitest';
 import type { EditorExtension } from '../types';
+import { MAX_PREVIEW_BYTES, PREVIEW_TIMEOUT_MS, validatePreview } from '../preview';
 import { validateExtension } from '../validate';
 import type { ConformanceFixtures } from './fixtures';
 import { trackListeners, watchForbiddenApis } from './guards';
@@ -154,6 +155,48 @@ export const checks: Record<string, Check> = {
     await edit(m, fixtures).catch(() => undefined);
     expect(m.handle().isDirty(), 'isDirty() in read-only mode').toBe(false);
     await m.unmount();
+  },
+
+  'preview (when offered) returns a valid PNG within the size, or null, and leaves its input alone': async (extension, fixtures) => {
+    if (!extension.preview) return;
+    const source = fixtures.previewSample ?? fixtures.sample;
+    for (const size of [64, 360]) {
+      const input = new Uint8Array(source);
+      const result = await extension.preview(input, { size });
+      expect([...input], 'preview() changed the bytes it was given').toEqual([...source]);
+      if (result === null) continue;
+      expect(validatePreview(result, size, MAX_PREVIEW_BYTES), `the preview at size ${size}`).toEqual([]);
+    }
+  },
+
+  'preview (when offered) ends in null or an error for garbage, without hanging': async (extension, fixtures) => {
+    if (!extension.preview) return;
+    const limit = Math.min(PREVIEW_TIMEOUT_MS, fixtures.timeoutMs ?? 5000);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<'timeout'>((resolve) => { timer = setTimeout(() => resolve('timeout'), limit); });
+    try {
+      const outcome = await Promise.race([
+        extension.preview(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]), { size: 64 }).then((r) => ({ r }), () => ({ r: null })),
+        timeout,
+      ]);
+      expect(outcome, `preview() of garbage did not finish within ${limit} ms`).not.toBe('timeout');
+      const { r } = outcome as { r: Uint8Array | null };
+      if (r !== null) expect(validatePreview(r, 64), 'what preview() returned for garbage').toEqual([]);
+    } finally {
+      clearTimeout(timer);
+    }
+  },
+
+  'preview (when offered) makes no network, storage or clipboard calls': async (extension, fixtures) => {
+    if (!extension.preview) return;
+    const watch = watchForbiddenApis();
+    try {
+      await extension.preview(new Uint8Array(fixtures.previewSample ?? fixtures.sample), { size: 64 }).catch(() => undefined);
+    } finally {
+      watch.restore();
+    }
+    expect(watch.forbidden, 'forbidden calls while drawing a preview').toEqual([]);
+    expect(watch.clipboard, 'clipboard calls while drawing a preview').toEqual([]);
   },
 
   'leaves nothing behind after unmount': async (extension, fixtures) => {

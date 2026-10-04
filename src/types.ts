@@ -51,6 +51,11 @@ export interface UnsupportedFeature {
   label: string;
 }
 
+export interface PreviewOptions {
+  /** The longest side of the image, in pixels, that the host will accept. */
+  size: number;
+}
+
 export interface InspectResult {
   /** Empty when nothing would be lost. */
   unsupported: UnsupportedFeature[];
@@ -78,4 +83,11 @@ export interface EditorExtension {
   load(): Promise<{ default: EditorComponent }>;
   /** Read-only look at a file: what saving it with this editor would lose. */
   inspect?(data: Uint8Array): Promise<InspectResult>;
+  /**
+   * Optional (owload-docs/decisions/0020): draws a preview of a file for the file grid. Returns the
+   * bytes of a PNG whose longer side is at most `options.size`, or null when there is nothing to show
+   * (an empty document, a file that cannot be read). It reads the file and changes nothing; the same
+   * rules as for the editor apply. The host validates the result and gives up after PREVIEW_TIMEOUT_MS.
+   */
+  preview?(data: Uint8Array, options: PreviewOptions): Promise<Uint8Array | null>;
 }

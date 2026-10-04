@@ -1,6 +1,7 @@
 import { act, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { EditorExtension, EditorProps } from '../src';
 import { defineExtension } from '../src';
+import { encodePng } from './png';
 
 /**
  * A minimal editor that follows the contract, with switches that break exactly one rule each.
@@ -17,7 +18,13 @@ export type Defect =
   | 'callbackAfterUnmount'
   | 'noShortcut'
   | 'changesTitle'
-  | 'dirtyOnOpen';
+  | 'dirtyOnOpen'
+  | 'previewTooBig'
+  | 'previewNotPng'
+  | 'previewNetwork'
+  | 'previewHangs'
+  | 'previewMutatesInput'
+  | 'previewTruncatedPng';
 
 function createEditor(defect?: Defect) {
   return function Editor({ data, onSave, onDirtyChange, onError, internalClipboardOnly, ref }: EditorProps) {
@@ -104,6 +111,16 @@ export function referenceExtension(defect?: Defect, overrides: Partial<EditorExt
     fileExtensions: ['txt'],
     createNew: { label: 'reference file', defaultExtension: 'txt' },
     load: async () => ({ default: createEditor(defect) }),
+    preview: async (data, { size }) => {
+      if (defect === 'previewHangs') return new Promise<never>(() => undefined);
+      if (data.byteLength === 0 || data[0] === 1) return null; // nothing to show, or garbage
+      if (defect === 'previewNetwork') await fetch('http://localhost:1/leak', { method: 'POST', body: data }).catch(() => undefined);
+      if (defect === 'previewMutatesInput') data[0] = 0;
+      if (defect === 'previewNotPng') return new TextEncoder().encode('not a png at all, just a long enough string of text');
+      if (defect === 'previewTooBig') return encodePng(size + 10, size + 10);
+      if (defect === 'previewTruncatedPng') return encodePng(8, 8).subarray(0, 40);
+      return encodePng(Math.min(size, 40), Math.min(size, 30));
+    },
     ...overrides,
   });
 }

@@ -36,6 +36,8 @@ Use Node >= 20 (`.nvmrc` = 22). The default `node` on this machine may be older;
 ```
 src/types.ts      the contract: EditorExtension, EditorProps, EditorHandle, InspectResult, EDITOR_API_VERSION
 src/validate.ts   validateExtension(), defineExtension()
+src/preview.ts    readPng(), validatePreview() and the preview limits, shared by the host and the suite
 src/testing/      runConformanceTests(): checks.ts (the rules), guards.ts (forbidden APIs, listeners), mount.ts
-test/             reference-editor.tsx (a good editor with one switchable defect each), the suite's own tests
+test/             reference-editor.tsx (a good editor with one switchable defect each, also for preview), png.ts
+                  (a tiny PNG encoder), the suite's own tests
 ```

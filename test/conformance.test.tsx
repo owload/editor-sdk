@@ -5,6 +5,8 @@ import { fixtures, referenceExtension, type Defect } from './reference-editor';
 // The reference editor follows the contract, so every check passes for it.
 runConformanceTests(referenceExtension(), fixtures);
 
+const PREVIEW_OK = 'preview (when offered) returns a valid PNG within the size, or null, and leaves its input alone';
+
 // Each defect breaks one rule, and the check named for that rule has to notice.
 const CATCHES: [Defect, string][] = [
   ['fetch', 'makes no network, storage or cookie calls during a whole session'],
@@ -18,11 +20,18 @@ const CATCHES: [Defect, string][] = [
   ['changesTitle', 'leaves nothing behind after unmount'],
   ['noShortcut', 'the save shortcut (Ctrl/Cmd+S) saves while the editor has focus'],
   ['dirtyOnOpen', 'opens a blank document for data = null'],
+  ['previewTooBig', PREVIEW_OK],
+  ['previewNotPng', PREVIEW_OK],
+  ['previewTruncatedPng', PREVIEW_OK],
+  ['previewMutatesInput', PREVIEW_OK],
+  ['previewNetwork', 'preview (when offered) makes no network, storage or clipboard calls'],
+  ['previewHangs', 'preview (when offered) ends in null or an error for garbage, without hanging'],
 ];
 
 describe('the conformance checks catch broken editors', () => {
   it.each(CATCHES)('%s is caught by "%s"', async (defect, checkName) => {
-    await expect(checks[checkName](referenceExtension(defect), fixtures)).rejects.toThrow();
+    // A short wait keeps the "hangs" case quick.
+    await expect(checks[checkName](referenceExtension(defect), { ...fixtures, timeoutMs: 400 })).rejects.toThrow();
   }, 20000);
 
   it('has a check for every name used above', () => {

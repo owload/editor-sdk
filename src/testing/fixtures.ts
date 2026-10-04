@@ -17,6 +17,8 @@ export interface ConformanceFixtures {
   ready?(container: HTMLElement): boolean;
   /** The element that has focus while the user types, for the save shortcut. Default: the active element. */
   focusTarget?(container: HTMLElement): HTMLElement | null;
+  /** A file to draw a preview of, if different from `sample`. */
+  previewSample?: Uint8Array;
   /** Performs "copy" inside the editor, if the format has a clipboard of its own. */
   copy?(container: HTMLElement): void | Promise<void>;
   /** The editor honours `readOnly`. */

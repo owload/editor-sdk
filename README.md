@@ -42,6 +42,7 @@ Pin a tag or commit, never a branch, and review the diff on every bump. Needs No
      maxFileBytes: 10 * 1024 * 1024,
      load: () => import('./editor').then((m) => ({ default: m.TextEditor })),
      // inspect: async (data) => ({ unsupported: [{ id: 'charts', label: 'Charts' }] }),
+     // preview: async (data, { size }) => pngBytesOrNull,   // optional, see "Previews"
    });
    ```
 
@@ -76,6 +77,23 @@ and never shows its own close or "discard changes?" dialog.
 | `onError?` | Load or save failures. |
 | `ref?` | `EditorHandle`: `save()` and `isDirty()`. |
 
+### Previews (optional)
+
+An extension may draw a preview of a file for the file grid
+([ADR 0020](https://github.com/owload/owload-docs/blob/main/decisions/0020-extension-previews.md)):
+
+```ts
+preview?(data: Uint8Array, options: { size: number }): Promise<Uint8Array | null>
+```
+
+It returns the bytes of a **PNG** whose longer side is at most `size` pixels, or `null` when there is nothing to
+show (an empty document, a file it cannot read). Like `inspect` it is lazy (load the drawing code with a dynamic
+`import()`), has no React in it, reads the file and changes nothing, and follows the same rules as the editor (no
+network, no browser storage, no clipboard). Drawing needs a canvas (`OffscreenCanvas`); where there is none, return
+`null`. The host validates the result with `validatePreview()` — a complete PNG, at most `size` on its longer side,
+at most `MAX_PREVIEW_BYTES` (2 MiB) — gives up after `PREVIEW_TIMEOUT_MS` (10 s), and never lets a failing preview
+fail an upload or a save. The host asks for `THUMBNAIL_SIZE` (360).
+
 ### Rules every extension follows
 
 - No network access; no `localStorage`, `sessionStorage`, IndexedDB or cookies; no logging of content.
@@ -93,7 +111,9 @@ and never shows its own close or "discard changes?" dialog.
 
 ### What the conformance suite checks, and what it cannot
 
-It drives the editor in `happy-dom` through the checks in `src/testing/checks.ts`: a valid descriptor; a blank
+It drives the editor in `happy-dom` through the checks in `src/testing/checks.ts`: a valid descriptor; for an
+extension with `preview`, a valid PNG within the size (or `null`), garbage input ending in `null` or an error
+without hanging, and no network, storage or clipboard calls while it draws; a blank
 document; opening the sample clean; dirty after an edit; save clears it; the saved bytes reopen with the edit;
 a failing `onSave`; an edit during a pending save; the save shortcut; no calls to `fetch`, XHR, `WebSocket`,
 `sendBeacon`, `indexedDB`, `localStorage`/`sessionStorage` or `document.cookie` during a whole session; no
