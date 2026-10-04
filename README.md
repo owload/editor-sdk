@@ -41,7 +41,6 @@ Pin a tag or commit, never a branch, and review the diff on every bump. Needs No
      createNew: { label: 'text file', defaultExtension: 'txt' },
      maxFileBytes: 10 * 1024 * 1024,
      load: () => import('./editor').then((m) => ({ default: m.TextEditor })),
-     // inspect: async (data) => ({ unsupported: [{ id: 'charts', label: 'Charts' }] }),
      // preview: async (data, { size }) => pngBytesOrNull,   // optional, see "Previews"
    });
    ```
@@ -62,9 +61,10 @@ Pin a tag or commit, never a branch, and review the diff on every bump. Needs No
 ## The contract
 
 The host owns everything around the editor: the window, loading, the failed-load
-message, the unsaved-changes dialog, the size check, decryption, the upload (always a `REPLACE`), the note
-about lossy saving, file association and the "New …" menu items. The extension owns the editing surface and its own title bar (the file name, Save, the unsaved-changes
-indicator and the close control that calls `onClose`); it never shows a "discard changes?" dialog.
+message, the unsaved-changes dialog, the size check, decryption, the upload (always a `REPLACE`), file association and the "New …" menu items. The extension owns the editing surface and its own title bar (the file name, Save, the unsaved-changes
+indicator and the close control that calls `onClose`); it never shows a "discard changes?" dialog. Anything the editor knows about its own format — for example that
+saving drops features it cannot represent — it tells the user itself, inside the editor; the contract has no
+channel for it ([ADR 0022](https://github.com/owload/owload-docs/blob/main/decisions/0022-editors-warn-about-their-own-losses.md)).
 
 | `EditorProps` | |
 | --- | --- |
@@ -88,7 +88,7 @@ preview?(data: Uint8Array, options: { size: number }): Promise<Uint8Array | null
 ```
 
 It returns the bytes of a **PNG** whose longer side is at most `size` pixels, or `null` when there is nothing to
-show (an empty document, a file it cannot read). Like `inspect` it is lazy (load the drawing code with a dynamic
+show (an empty document, a file it cannot read). It is lazy (load the drawing code with a dynamic
 `import()`), has no React in it, reads the file and changes nothing, and follows the same rules as the editor (no
 network, no browser storage, no clipboard). Drawing needs a canvas (`OffscreenCanvas`); where there is none, return
 `null`. The host validates the result with `validatePreview()` — a complete PNG, at most `size` on its longer side,

@@ -9,7 +9,6 @@ const valid = {
   createNew: { label: 'spreadsheet', defaultExtension: 'xlsx' },
   maxFileBytes: 1024,
   load: async () => ({ default: () => null }),
-  inspect: async () => ({ unsupported: [] }),
 };
 
 describe('validateExtension', () => {
@@ -45,7 +44,6 @@ describe('validateExtension', () => {
     ['maxFileBytes', { maxFileBytes: 0 }],
     ['maxFileBytes', { maxFileBytes: 1.5 }],
     ['load', { load: undefined }],
-    ['inspect', { inspect: 'yes' }],
   ])('rejects a bad %s', (field, change) => {
     const problems = validateExtension({ ...valid, ...change });
     expect(problems.length).toBeGreaterThan(0);

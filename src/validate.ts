@@ -53,7 +53,6 @@ export function validateExtension(value: unknown): string[] {
     problems.push('maxFileBytes must be a positive integer.');
   }
   if (typeof ext.load !== 'function') problems.push('load must be a function.');
-  if (ext.inspect !== undefined && typeof ext.inspect !== 'function') problems.push('inspect must be a function.');
   if (ext.preview !== undefined && typeof ext.preview !== 'function') problems.push('preview must be a function.');
   return problems;
 }

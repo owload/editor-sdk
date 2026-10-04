@@ -50,22 +50,9 @@ export interface EditorProps {
 
 export type EditorComponent = ComponentType<EditorProps>;
 
-/** One thing that saving a file with this editor would drop. */
-export interface UnsupportedFeature {
-  /** Stable identifier, for tests and logs ("charts"). */
-  id: string;
-  /** Short English text the host shows as is ("Charts"). */
-  label: string;
-}
-
 export interface PreviewOptions {
   /** The longest side of the image, in pixels, that the host will accept. */
   size: number;
-}
-
-export interface InspectResult {
-  /** Empty when nothing would be lost. */
-  unsupported: UnsupportedFeature[];
 }
 
 /** What an extension package exports (as `extension`). Build it with `defineExtension()`. */
@@ -88,8 +75,6 @@ export interface EditorExtension {
   maxFileBytes?: number;
   /** Loads the editor lazily, so it is a separate chunk of the host's bundle. */
   load(): Promise<{ default: EditorComponent }>;
-  /** Read-only look at a file: what saving it with this editor would lose. */
-  inspect?(data: Uint8Array): Promise<InspectResult>;
   /**
    * Optional (owload-docs/decisions/0020): draws a preview of a file for the file grid. Returns the
    * bytes of a PNG whose longer side is at most `options.size`, or null when there is nothing to show
