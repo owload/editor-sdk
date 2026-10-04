@@ -5,6 +5,7 @@ import { fixtures, referenceExtension, type Defect } from './reference-editor';
 // The reference editor follows the contract, so every check passes for it.
 runConformanceTests(referenceExtension(), fixtures);
 
+const CLOSE = 'shows a close control (a button named "Close") that calls onClose and closes nothing itself';
 const PREVIEW_OK = 'preview (when offered) returns a valid PNG within the size, or null, and leaves its input alone';
 
 // Each defect breaks one rule, and the check named for that rule has to notice.
@@ -20,6 +21,8 @@ const CATCHES: [Defect, string][] = [
   ['changesTitle', 'leaves nothing behind after unmount'],
   ['noShortcut', 'the save shortcut (Ctrl/Cmd+S) saves while the editor has focus'],
   ['dirtyOnOpen', 'opens a blank document for data = null'],
+  ['noCloseControl', CLOSE],
+  ['closeSaves', CLOSE],
   ['previewTooBig', PREVIEW_OK],
   ['previewNotPng', PREVIEW_OK],
   ['previewTruncatedPng', PREVIEW_OK],

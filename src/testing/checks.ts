@@ -45,6 +45,19 @@ export const checks: Record<string, Check> = {
     await m.unmount();
   },
 
+  'shows a close control (a button named "Close") that calls onClose and closes nothing itself': async (extension, fixtures) => {
+    const m = await mount(extension, fixtures, { data: fixtures.sample });
+    const button = m.container.querySelector<HTMLButtonElement>('button[aria-label="Close"]');
+    expect(button, 'a <button aria-label="Close"> in the editor').not.toBeNull();
+    expect(button!.disabled, 'the close control is enabled when idle').toBe(false);
+    await act(async () => { button!.click(); });
+    await settle();
+    expect(m.onClose, 'onClose after a click on the close control').toHaveBeenCalledTimes(1);
+    expect(m.container.childElementCount, 'the editor stays until the host removes it').toBeGreaterThan(0);
+    expect(m.onSave).not.toHaveBeenCalled();
+    await m.unmount();
+  },
+
   'is dirty after an edit and says so': async (extension, fixtures) => {
     const m = await mount(extension, fixtures, { data: fixtures.sample });
     await edit(m, fixtures);

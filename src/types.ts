@@ -37,6 +37,13 @@ export interface EditorProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** Called when loading or saving fails (the editor also shows the message). */
   onError?: (error: Error) => void;
+  /**
+   * Called when the user asks to close the editor. The editor shows a close control for it in its own
+   * title bar: a button whose accessible name is "Close" (`aria-label="Close"`), disabled while a save is
+   * running. It does not close anything itself and does not ask about unsaved changes: the host does, using
+   * `isDirty()`, and then removes the editor.
+   */
+  onClose: () => void;
   className?: string;
   ref?: Ref<EditorHandle>;
 }

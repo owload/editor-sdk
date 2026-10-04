@@ -25,6 +25,7 @@ export interface Mounted {
   onSave: ReturnType<typeof vi.fn>;
   onDirtyChange: ReturnType<typeof vi.fn>;
   onError: ReturnType<typeof vi.fn>;
+  onClose: ReturnType<typeof vi.fn>;
   unmount(): Promise<void>;
   /** True after the last `onDirtyChange` call said so. */
   lastDirty(): boolean | undefined;
@@ -58,6 +59,7 @@ export async function mount(
   const onSave = vi.fn(options.onSave ?? (async () => {}));
   const onDirtyChange = vi.fn();
   const onError = vi.fn();
+  const onClose = vi.fn();
   const timeout = fixtures.timeoutMs ?? 5000;
 
   await act(async () => {
@@ -69,6 +71,7 @@ export async function mount(
       onSave,
       onDirtyChange,
       onError,
+      onClose,
       ref,
     }));
   });
@@ -86,6 +89,7 @@ export async function mount(
     onSave,
     onDirtyChange,
     onError,
+    onClose,
     lastDirty: () => {
       const calls = onDirtyChange.mock.calls;
       return calls.length ? (calls[calls.length - 1][0] as boolean) : undefined;

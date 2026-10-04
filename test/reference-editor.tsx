@@ -19,6 +19,8 @@ export type Defect =
   | 'noShortcut'
   | 'changesTitle'
   | 'dirtyOnOpen'
+  | 'noCloseControl'
+  | 'closeSaves'
   | 'previewTooBig'
   | 'previewNotPng'
   | 'previewNetwork'
@@ -27,7 +29,7 @@ export type Defect =
   | 'previewTruncatedPng';
 
 function createEditor(defect?: Defect) {
-  return function Editor({ data, onSave, onDirtyChange, onError, internalClipboardOnly, ref }: EditorProps) {
+  return function Editor({ data, onSave, onDirtyChange, onError, onClose, internalClipboardOnly, ref }: EditorProps) {
     const [initial] = useState(() => (data && data.byteLength ? new TextDecoder().decode(data) : ''));
     const [text, setText] = useState(initial);
     const [error, setError] = useState<string | null>(null);
@@ -79,6 +81,17 @@ function createEditor(defect?: Defect) {
 
     return (
       <div>
+        {defect !== 'noCloseControl' && (
+          <button
+            aria-label="Close"
+            onClick={() => {
+              if (defect === 'closeSaves') void saveRef.current();
+              onClose();
+            }}
+          >
+            ×
+          </button>
+        )}
         {error && <p role="alert">{error}</p>}
         <textarea
           value={text}

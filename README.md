@@ -61,10 +61,10 @@ Pin a tag or commit, never a branch, and review the diff on every bump. Needs No
 
 ## The contract
 
-The host owns everything around the editor: the window and its close button, loading, the failed-load
+The host owns everything around the editor: the window, loading, the failed-load
 message, the unsaved-changes dialog, the size check, decryption, the upload (always a `REPLACE`), the note
-about lossy saving, file association and the "New …" menu items. The extension owns the editing surface only
-and never shows its own close or "discard changes?" dialog.
+about lossy saving, file association and the "New …" menu items. The extension owns the editing surface and its own title bar (the file name, Save, the unsaved-changes
+indicator and the close control that calls `onClose`); it never shows a "discard changes?" dialog.
 
 | `EditorProps` | |
 | --- | --- |
@@ -75,6 +75,7 @@ and never shows its own close or "discard changes?" dialog.
 | `onSave(bytes)` | Called on Save / Ctrl+S / `ref.save()`. If it throws, the document stays dirty and the error is shown and passed to `onError`. The bytes belong to the host afterwards. |
 | `onDirtyChange?` | Called when the unsaved-changes state flips. |
 | `onError?` | Load or save failures. |
+| `onClose` | Called when the user asks to close. The editor shows a close control in its own title bar for it: a `<button aria-label="Close">`, disabled while saving. It closes nothing and asks nothing itself; the host checks `isDirty()`, asks about unsaved changes and removes the editor. |
 | `ref?` | `EditorHandle`: `save()` and `isDirty()`. |
 
 ### Previews (optional)
