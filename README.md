@@ -93,7 +93,8 @@ show (an empty document, a file it cannot read). It is lazy (load the drawing co
 network, no browser storage, no clipboard). Drawing needs a canvas (`OffscreenCanvas`); where there is none, return
 `null`. The host validates the result with `validatePreview()` — a complete PNG, at most `size` on its longer side,
 at most `MAX_PREVIEW_BYTES` (2 MiB) — gives up after `PREVIEW_TIMEOUT_MS` (10 s), and never lets a failing preview
-fail an upload or a save. The host asks for `THUMBNAIL_SIZE` (360).
+fail an upload or a save. The host asks for `THUMBNAIL_SIZE` (360). The file grid shows an extension's preview filling a square tile, anchored at its top-left corner and cropped from the right and the bottom
+if the picture is not square, so draw the most important content there (a square picture is shown whole).
 
 ### Rules every extension follows
 
