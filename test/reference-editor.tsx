@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { act, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { EditorExtension, EditorProps } from '../src';
 import { defineExtension } from '../src';
 
@@ -110,12 +110,14 @@ export function referenceExtension(defect?: Defect, overrides: Partial<EditorExt
 
 export const fixtures = {
   sample: new TextEncoder().encode('hello'),
-  edit(container: HTMLElement) {
+  async edit(container: HTMLElement) {
     const textarea = container.querySelector('textarea')!;
-    textarea.focus();
-    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
-    setter.call(textarea, textarea.value + '!');
-    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    await act(async () => {
+      textarea.focus();
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
+      setter.call(textarea, textarea.value + '!');
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
   },
   verifyReopened(container: HTMLElement) {
     const value = container.querySelector('textarea')!.value;

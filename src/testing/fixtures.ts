@@ -4,7 +4,8 @@ export interface ConformanceFixtures {
   sample: Uint8Array;
   /**
    * Makes one change the way a user would (typing into the editing surface). Called several times
-   * in one test: every call must change the document again.
+   * in one test: every call must change the document again. Wrap each gesture that React has to
+   * render before the next one in `await act(async () => { ... })` (exported from this package).
    */
   edit(container: HTMLElement): void | Promise<void>;
   /**

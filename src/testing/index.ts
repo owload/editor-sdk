@@ -3,6 +3,7 @@ import type { EditorExtension } from '../types';
 import { checks } from './checks';
 import type { ConformanceFixtures } from './fixtures';
 
+export { act } from 'react';
 export { checks } from './checks';
 export type { Check } from './checks';
 export type { ConformanceFixtures } from './fixtures';

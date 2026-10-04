@@ -101,6 +101,6 @@ export async function mount(
 
 /** Makes one user edit through the extension's own fixture. */
 export async function edit(mounted: Mounted, fixtures: ConformanceFixtures): Promise<void> {
-  await act(async () => { await fixtures.edit(mounted.container); });
+  await fixtures.edit(mounted.container);
   await settle();
 }

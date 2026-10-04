@@ -53,7 +53,7 @@ Pin a tag or commit, never a branch, and review the diff on every bump. Needs No
 
    runConformanceTests(extension, {
      sample: new TextEncoder().encode('hello'),
-     edit: (container) => { /* type into the editor; every call must change the document again */ },
+     edit: async (container) => { /* wrap each gesture in `await act(async () => ...)`, exported by this package; every call must change the document again */ },
      verifyReopened: (container) => { /* throw if the first edit is missing after save + reopen */ },
    });
    ```
