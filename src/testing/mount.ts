@@ -27,6 +27,8 @@ export interface Mounted {
   onError: ReturnType<typeof vi.fn>;
   onClose: ReturnType<typeof vi.fn>;
   unmount(): Promise<void>;
+  /** True for a view-only extension: there is nothing to edit. */
+  viewOnly: boolean;
   /** True after the last `onDirtyChange` call said so. */
   lastDirty(): boolean | undefined;
 }
@@ -82,6 +84,7 @@ export async function mount(
   let unmounted = false;
   return {
     container,
+    viewOnly: extension.viewOnly === true,
     handle: () => {
       if (!ref.current) throw new Error('The ref of the editor is not set: forward it with useImperativeHandle.');
       return ref.current;
@@ -105,6 +108,10 @@ export async function mount(
 
 /** Makes one user edit through the extension's own fixture. */
 export async function edit(mounted: Mounted, fixtures: ConformanceFixtures): Promise<void> {
+  if (!fixtures.edit) {
+    if (mounted.viewOnly) return; // a viewer has nothing to edit
+    throw new Error('The fixtures need an edit() function (only a viewOnly extension may leave it out).');
+  }
   await fixtures.edit(mounted.container);
   await settle();
 }

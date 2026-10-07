@@ -28,6 +28,18 @@ export const checks: Record<string, Check> = {
     expect(loaded?.default, 'load() must resolve to { default: <component> }').toBeTruthy();
   },
 
+  'a view-only extension is never dirty and never saves (only when viewOnly)': async (extension, fixtures) => {
+    if (!extension.viewOnly) return;
+    const m = await mount(extension, fixtures, { data: fixtures.sample });
+    await act(async () => { await m.handle().save(); });
+    await settle();
+    expect(m.handle().isDirty(), 'a view-only extension is never dirty').toBe(false);
+    expect(m.onDirtyChange.mock.calls.some((c) => c[0] === true), 'onDirtyChange(true) from a view-only extension').toBe(false);
+    expect(m.onSave, 'a view-only extension never calls onSave').not.toHaveBeenCalled();
+    expectNoError(m.onError, 'by save() of a view-only extension');
+    await m.unmount();
+  },
+
   'opens a blank document for data = null': async (extension, fixtures) => {
     const m = await mount(extension, fixtures, { data: null });
     expectNoError(m.onError, 'for a blank document');
@@ -59,6 +71,7 @@ export const checks: Record<string, Check> = {
   },
 
   'is dirty after an edit and says so': async (extension, fixtures) => {
+    if (extension.viewOnly) return; // a viewer has no edit and no save
     const m = await mount(extension, fixtures, { data: fixtures.sample });
     await edit(m, fixtures);
     expect(m.handle().isDirty(), 'isDirty() after an edit').toBe(true);
@@ -67,6 +80,7 @@ export const checks: Record<string, Check> = {
   },
 
   'save() passes bytes to onSave and clears the dirty state': async (extension, fixtures) => {
+    if (extension.viewOnly) return; // a viewer has no edit and no save
     const m = await mount(extension, fixtures, { data: fixtures.sample });
     await edit(m, fixtures);
     await act(async () => { await m.handle().save(); });
@@ -82,6 +96,7 @@ export const checks: Record<string, Check> = {
   },
 
   'the saved bytes reopen with the edit in them': async (extension, fixtures) => {
+    if (extension.viewOnly) return; // a viewer has no edit and no save
     const first = await mount(extension, fixtures, { data: fixtures.sample });
     await edit(first, fixtures);
     await act(async () => { await first.handle().save(); });
@@ -96,6 +111,7 @@ export const checks: Record<string, Check> = {
   },
 
   'a failing onSave keeps the document dirty and reports the error': async (extension, fixtures) => {
+    if (extension.viewOnly) return; // a viewer has no edit and no save
     const m = await mount(extension, fixtures, {
       data: fixtures.sample,
       onSave: async () => { throw new Error('upload failed'); },
@@ -109,6 +125,7 @@ export const checks: Record<string, Check> = {
   },
 
   'an edit made while a save is pending keeps the document dirty': async (extension, fixtures) => {
+    if (extension.viewOnly) return; // a viewer has no edit and no save
     const hold = deferred();
     const m = await mount(extension, fixtures, { data: fixtures.sample, onSave: () => hold.promise });
     await edit(m, fixtures);
@@ -122,6 +139,7 @@ export const checks: Record<string, Check> = {
   },
 
   'the save shortcut (Ctrl/Cmd+S) saves while the editor has focus': async (extension, fixtures) => {
+    if (extension.viewOnly) return; // a viewer has no edit and no save
     const m = await mount(extension, fixtures, { data: fixtures.sample });
     await edit(m, fixtures);
     const target = fixtures.focusTarget?.(m.container) ?? (document.activeElement as HTMLElement | null) ?? m.container;

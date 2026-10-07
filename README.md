@@ -78,6 +78,15 @@ channel for it ([ADR 0022](https://github.com/owload/owload-docs/blob/main/decis
 | `onClose` | Called when the user asks to close. The editor shows a close control in its own title bar for it: a `<button aria-label="Close">`, disabled while saving. It closes nothing and asks nothing itself; the host checks `isDirty()`, asks about unsaved changes and removes the editor. |
 | `ref?` | `EditorHandle`: `save()` and `isDirty()`. |
 
+### View-only extensions (optional)
+
+An extension that only shows a file (a video container, an archive, ...) sets `viewOnly: true` in its descriptor
+([ADR 0026](https://github.com/owload/owload-docs/blob/main/decisions/0026-view-only-extensions-and-avi-viewer.md)).
+It is never dirty, never calls `onSave`, and `save()` resolves without doing anything; it has no `createNew`; it still
+draws its own title bar with the close control and follows the rules below. The host needs nothing special. In the
+conformance suite `fixtures.edit` may then be left out: the checks that need an edit are skipped and the suite checks
+that the viewer stays clean and never saves. The field is additive, so the contract version stays 1.
+
 ### Previews (optional)
 
 An extension may draw a preview of a file for the file grid

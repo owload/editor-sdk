@@ -6,8 +6,9 @@ export interface ConformanceFixtures {
    * Makes one change the way a user would (typing into the editing surface). Called several times
    * in one test: every call must change the document again. Wrap each gesture that React has to
    * render before the next one in `await act(async () => { ... })` (exported from this package).
+   * Required, except for a `viewOnly` extension, which has nothing to edit.
    */
-  edit(container: HTMLElement): void | Promise<void>;
+  edit?(container: HTMLElement): void | Promise<void>;
   /**
    * Called after the sample was edited once, saved, and the saved bytes were opened in a fresh
    * editor. Throw if the edit is not there.

@@ -49,6 +49,8 @@ export function validateExtension(value: unknown): string[] {
     }
   }
 
+  if (ext.viewOnly !== undefined && typeof ext.viewOnly !== 'boolean') problems.push('viewOnly must be true or false.');
+  if (ext.viewOnly === true && ext.createNew !== undefined) problems.push('a viewOnly extension cannot have createNew.');
   if (ext.maxFileBytes !== undefined && (!Number.isSafeInteger(ext.maxFileBytes) || ext.maxFileBytes <= 0)) {
     problems.push('maxFileBytes must be a positive integer.');
   }

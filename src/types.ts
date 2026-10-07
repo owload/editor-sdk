@@ -71,6 +71,12 @@ export interface EditorExtension {
     /** One of `fileExtensions`, added to the name when the user leaves it out. */
     defaultExtension: string;
   };
+  /**
+   * A viewer: it shows the file and never edits it (owload-docs/decisions/0026). It is never dirty, never calls
+   * `onSave`, and `save()` resolves without doing anything. Not allowed together with `createNew`. The
+   * conformance suite then skips the checks that need an edit and checks that the viewer stays clean.
+   */
+  viewOnly?: boolean;
   /** The host refuses a bigger file before it decrypts it. Default: 100 MiB. */
   maxFileBytes?: number;
   /** Loads the editor lazily, so it is a separate chunk of the host's bundle. */

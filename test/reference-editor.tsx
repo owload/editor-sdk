@@ -157,3 +157,40 @@ export const fixtures = {
   focusTarget: (container: HTMLElement) => container.querySelector('textarea'),
   supportsReadOnly: false,
 };
+
+/** What breaks a view-only extension: it must stay clean and never save. */
+export type ViewerDefect = 'dirties' | 'saves';
+
+/** A minimal view-only extension that follows the contract, with switches for the two rules that are its own. */
+export function referenceViewer(defect?: ViewerDefect): EditorExtension {
+  function Viewer({ data, onSave, onDirtyChange, onClose, ref }: EditorProps) {
+    const text = data && data.byteLength ? new TextDecoder().decode(data) : '';
+    useImperativeHandle(ref, () => ({
+      save: async () => {
+        if (defect === 'saves') await onSave(new TextEncoder().encode(text));
+        if (defect === 'dirties') onDirtyChange?.(true);
+      },
+      isDirty: () => defect === 'dirties',
+    }), [text, onSave, onDirtyChange]);
+    return (
+      <div>
+        <button aria-label="Close" onClick={onClose}>×</button>
+        <pre>{text}</pre>
+      </div>
+    );
+  }
+  return defineExtension({
+    apiVersion: 1,
+    id: 'reference-viewer',
+    label: 'Reference viewer',
+    fileExtensions: ['txt'],
+    viewOnly: true,
+    load: async () => ({ default: Viewer }),
+  });
+}
+
+/** Fixtures of a viewer: nothing to edit. */
+export const viewerFixtures = {
+  sample: new TextEncoder().encode('hello'),
+  ready: (container: HTMLElement) => !!container.querySelector('pre'),
+};
